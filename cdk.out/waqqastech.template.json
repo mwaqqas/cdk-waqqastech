@@ -1,0 +1,88 @@
+{
+  "Resources": {
+    "ApexHostedZoneBF467F61": {
+      "Type": "AWS::Route53::HostedZone",
+      "Properties": {
+        "Name": "waqqas.tech.",
+        "HostedZoneConfig": {
+          "Comment": "waqqas.tech"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/ApexHostedZone/Resource"
+      }
+    },
+    "WebsiteBucket75C24D94": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/WebsiteBucket/Resource"
+      }
+    },
+    "WebsiteBucketPolicyE10E3262": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "WebsiteBucket75C24D94"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:GetObject",
+              "Effect": "Allow",
+              "Principal": {
+                "CanonicalUser": {
+                  "Fn::GetAtt": [
+                    "CloudfrontOAI",
+                    "S3CanonicalUserId"
+                  ]
+                }
+              },
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "WebsiteBucket75C24D94",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/WebsiteBucket/Policy/Resource"
+      }
+    },
+    "CloudfrontOAI": {
+      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+      "Properties": {
+        "CloudFrontOriginAccessIdentityConfig": {
+          "Comment": "abc"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CloudfrontOAI"
+      }
+    }
+  }
+}

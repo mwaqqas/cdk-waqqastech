@@ -1,0 +1,7 @@
+README.md
+setup.py
+waqqastech/waqqastech.egg-info/PKG-INFO
+waqqastech/waqqastech.egg-info/SOURCES.txt
+waqqastech/waqqastech.egg-info/dependency_links.txt
+waqqastech/waqqastech.egg-info/requires.txt
+waqqastech/waqqastech.egg-info/top_level.txt
