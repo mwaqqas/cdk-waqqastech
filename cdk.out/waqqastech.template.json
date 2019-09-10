@@ -1,15 +1,210 @@
 {
   "Resources": {
-    "ApexHostedZoneBF467F61": {
+    "MainHostedZone518DC673": {
       "Type": "AWS::Route53::HostedZone",
       "Properties": {
         "Name": "waqqas.tech.",
         "HostedZoneConfig": {
-          "Comment": "waqqas.tech"
+          "Comment": "Hosted Zone for waqqas.tech"
         }
       },
       "Metadata": {
-        "aws:cdk:path": "waqqastech/ApexHostedZone/Resource"
+        "aws:cdk:path": "waqqastech/MainHostedZone/Resource"
+      }
+    },
+    "CloudFrontCertificateCertificateRequestorFunctionServiceRole9648ACEF": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mohamed.waqqas"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CloudFrontCertificate/CertificateRequestorFunction/ServiceRole/Resource"
+      }
+    },
+    "CloudFrontCertificateCertificateRequestorFunctionServiceRoleDefaultPolicyE40ABFA5": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "acm:RequestCertificate",
+                "acm:DescribeCertificate",
+                "acm:DeleteCertificate"
+              ],
+              "Effect": "Allow",
+              "Resource": "*"
+            },
+            {
+              "Action": "route53:GetChange",
+              "Effect": "Allow",
+              "Resource": "*"
+            },
+            {
+              "Action": "route53:changeResourceRecordSets",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:route53:::hostedzone/",
+                    {
+                      "Ref": "MainHostedZone518DC673"
+                    }
+                  ]
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "CloudFrontCertificateCertificateRequestorFunctionServiceRoleDefaultPolicyE40ABFA5",
+        "Roles": [
+          {
+            "Ref": "CloudFrontCertificateCertificateRequestorFunctionServiceRole9648ACEF"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CloudFrontCertificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource"
+      }
+    },
+    "CloudFrontCertificateCertificateRequestorFunctionB6AF51B2": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CloudFrontCertificateCertificateRequestorFunctionCodeS3Bucket1A4E8D93"
+          },
+          "S3Key": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Fn::Select": [
+                    0,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "CloudFrontCertificateCertificateRequestorFunctionCodeS3VersionKey3402FE74"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Fn::Select": [
+                    1,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "CloudFrontCertificateCertificateRequestorFunctionCodeS3VersionKey3402FE74"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        },
+        "Handler": "index.certificateRequestHandler",
+        "Role": {
+          "Fn::GetAtt": [
+            "CloudFrontCertificateCertificateRequestorFunctionServiceRole9648ACEF",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs8.10",
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mohamed.waqqas"
+          }
+        ],
+        "Timeout": 900
+      },
+      "DependsOn": [
+        "CloudFrontCertificateCertificateRequestorFunctionServiceRoleDefaultPolicyE40ABFA5",
+        "CloudFrontCertificateCertificateRequestorFunctionServiceRole9648ACEF"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CloudFrontCertificate/CertificateRequestorFunction/Resource",
+        "aws:asset:path": "asset.f881fa610b508443cb3738679d55a69709ea051167ac371677a211e16b974366",
+        "aws:asset:property": "Code"
+      }
+    },
+    "CloudFrontCertificateCertificateRequestorResource1EE7A77A": {
+      "Type": "AWS::CloudFormation::CustomResource",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CloudFrontCertificateCertificateRequestorFunctionB6AF51B2",
+            "Arn"
+          ]
+        },
+        "DomainName": "waqqas.tech",
+        "SubjectAlternativeNames": [
+          "*.waqqas.tech"
+        ],
+        "HostedZoneId": {
+          "Ref": "MainHostedZone518DC673"
+        },
+        "Region": "us-east-1"
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CloudFrontCertificate/CertificateRequestorResource/Default"
       }
     },
     "WebsiteBucket75C24D94": {
@@ -23,7 +218,21 @@
               }
             }
           ]
-        }
+        },
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mohamed.waqqas"
+          }
+        ]
       },
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete",
@@ -77,12 +286,138 @@
       "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
       "Properties": {
         "CloudFrontOriginAccessIdentityConfig": {
-          "Comment": "abc"
+          "Comment": "CloudFrontOAIForWaqtec"
         }
       },
       "Metadata": {
         "aws:cdk:path": "waqqastech/CloudfrontOAI"
       }
+    },
+    "CloudFrontDistributionCFDistribution599ADCC4": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Aliases": [
+            "waqqas.tech",
+            "blog.waqqas.tech"
+          ],
+          "Comment": "waqqas.tech",
+          "DefaultCacheBehavior": {
+            "AllowedMethods": [
+              "GET",
+              "HEAD",
+              "OPTIONS"
+            ],
+            "CachedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "Compress": true,
+            "DefaultTTL": 60,
+            "ForwardedValues": {
+              "Cookies": {
+                "Forward": "none"
+              },
+              "QueryString": false
+            },
+            "TargetOriginId": "origin1",
+            "ViewerProtocolPolicy": "redirect-to-https"
+          },
+          "DefaultRootObject": "index.html",
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Origins": [
+            {
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "WebsiteBucket75C24D94",
+                  "RegionalDomainName"
+                ]
+              },
+              "Id": "origin1",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "origin-access-identity/cloudfront/",
+                      {
+                        "Ref": "CloudfrontOAI"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "PriceClass": "PriceClass_100",
+          "ViewerCertificate": {
+            "AcmCertificateArn": {
+              "Fn::GetAtt": [
+                "CloudFrontCertificateCertificateRequestorResource1EE7A77A",
+                "Arn"
+              ]
+            },
+            "MinimumProtocolVersion": "TLSv1.2_2018",
+            "SslSupportMethod": "sni-only"
+          }
+        },
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mohamed.waqqas"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CloudFrontDistribution/CFDistribution"
+      }
+    },
+    "PrimaryAliasDNSRecordBEAB17FC": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "Name": "waqqas.tech.",
+        "Type": "A",
+        "AliasTarget": {
+          "DNSName": {
+            "Fn::GetAtt": [
+              "CloudFrontDistributionCFDistribution599ADCC4",
+              "DomainName"
+            ]
+          },
+          "HostedZoneId": "Z2FDTNDATAQYW2"
+        },
+        "Comment": "waqtec CloudFront Dist Alias Record",
+        "HostedZoneId": {
+          "Ref": "MainHostedZone518DC673"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/PrimaryAliasDNSRecord/Resource"
+      }
+    }
+  },
+  "Parameters": {
+    "CloudFrontCertificateCertificateRequestorFunctionCodeS3Bucket1A4E8D93": {
+      "Type": "String",
+      "Description": "S3 bucket for asset \"waqqastech/CloudFrontCertificate/CertificateRequestorFunction/Code\""
+    },
+    "CloudFrontCertificateCertificateRequestorFunctionCodeS3VersionKey3402FE74": {
+      "Type": "String",
+      "Description": "S3 key for asset version \"waqqastech/CloudFrontCertificate/CertificateRequestorFunction/Code\""
+    },
+    "CloudFrontCertificateCertificateRequestorFunctionCodeArtifactHashABF196CA": {
+      "Type": "String",
+      "Description": "Artifact hash for asset \"waqqastech/CloudFrontCertificate/CertificateRequestorFunction/Code\""
     }
   }
 }
