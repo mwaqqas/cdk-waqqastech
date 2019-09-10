@@ -56,6 +56,9 @@
           }
         ]
       },
+      "DependsOn": [
+        "MainHostedZone518DC673"
+      ],
       "Metadata": {
         "aws:cdk:path": "waqqastech/CloudFrontCertificate/CertificateRequestorFunction/ServiceRole/Resource"
       }
@@ -104,6 +107,9 @@
           }
         ]
       },
+      "DependsOn": [
+        "MainHostedZone518DC673"
+      ],
       "Metadata": {
         "aws:cdk:path": "waqqastech/CloudFrontCertificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource"
       }
@@ -175,7 +181,8 @@
       },
       "DependsOn": [
         "CloudFrontCertificateCertificateRequestorFunctionServiceRoleDefaultPolicyE40ABFA5",
-        "CloudFrontCertificateCertificateRequestorFunctionServiceRole9648ACEF"
+        "CloudFrontCertificateCertificateRequestorFunctionServiceRole9648ACEF",
+        "MainHostedZone518DC673"
       ],
       "Metadata": {
         "aws:cdk:path": "waqqastech/CloudFrontCertificate/CertificateRequestorFunction/Resource",
@@ -201,6 +208,9 @@
         },
         "Region": "us-east-1"
       },
+      "DependsOn": [
+        "MainHostedZone518DC673"
+      ],
       "UpdateReplacePolicy": "Delete",
       "DeletionPolicy": "Delete",
       "Metadata": {

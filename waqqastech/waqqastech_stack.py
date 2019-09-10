@@ -23,6 +23,9 @@ class WaqqastechStack(core.Stack):
         )
 
         # ACM Certificate
+        # This Construct (DnsValidatedCertificate) creates a few Custom Resources
+        # Therefore, the dependancy on Hosted Zone needs to be explicitly declared
+        # in order to delete the stack properly
         acm_certificate = aws_certificatemanager.DnsValidatedCertificate(
             self,
             "CloudFrontCertificate",
@@ -32,6 +35,8 @@ class WaqqastechStack(core.Stack):
             subject_alternative_names=CERTIFICATE_ALT_DOMAIN_NAMES,
             validation_method=aws_certificatemanager.ValidationMethod.DNS
         )
+
+        acm_certificate.node.add_dependency(hosted_zone)
 
         # Website Bucket
         website_bucket = aws_s3.Bucket(
