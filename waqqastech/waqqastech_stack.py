@@ -15,28 +15,39 @@ class WaqqastechStack(core.Stack):
             core.Tag.add(self, key=k, value=v)
 
         # Hosted Zone
-        hosted_zone = aws_route53.HostedZone(
-            self,
-            "MainHostedZone",
-            zone_name=HOSTED_ZONE_NAME,
-            comment="Hosted Zone for {}".format(HOSTED_ZONE_NAME),
-        )
+        if HOSTED_ZONE["id"]:
+            hosted_zone = aws_route53.HostedZone.from_hosted_zone_attributes(
+                self,
+                "ImportedHostedZone",
+                hosted_zone_id=HOSTED_ZONE["id"],
+                zone_name=HOSTED_ZONE["name"]
+            )
+        else:
+            hosted_zone = aws_route53.HostedZone(
+                self,
+                "MainHostedZone",
+                zone_name=HOSTED_ZONE["name"],
+                comment="Hosted Zone for {}".format(HOSTED_ZONE["name"]),
+            )
 
         # ACM Certificate
-        # This Construct (DnsValidatedCertificate) creates a few Custom Resources
-        # Therefore, the dependancy on Hosted Zone needs to be explicitly declared
-        # in order to delete the stack properly
-        acm_certificate = aws_certificatemanager.DnsValidatedCertificate(
-            self,
-            "CloudFrontCertificate",
-            hosted_zone=hosted_zone,
-            region=CERTIFICATE_REGION,
-            domain_name=DOMAIN_NAME,
-            subject_alternative_names=CERTIFICATE_ALT_DOMAIN_NAMES,
-            validation_method=aws_certificatemanager.ValidationMethod.DNS
-        )
-
-        acm_certificate.node.add_dependency(hosted_zone)
+        if CERTIFICATE["arn"]:
+            acm_certificate = aws_certificatemanager.Certificate.from_certificate_arn(
+                self,
+                "ImportedCertificate",
+                certificate_arn=CERTIFICATE["arn"]
+            )
+        else:
+            acm_certificate = aws_certificatemanager.DnsValidatedCertificate(
+                self,
+                "CloudFrontCertificate",
+                hosted_zone=hosted_zone,
+                region=CERTIFICATE["region"],
+                domain_name=HOSTED_ZONE["domain"],
+                subject_alternative_names=CERTIFICATE["alt_domains"],
+                validation_method=aws_certificatemanager.ValidationMethod.DNS
+            )
+            acm_certificate.node.add_dependency(hosted_zone)
 
         # Website Bucket
         website_bucket = aws_s3.Bucket(
@@ -80,7 +91,7 @@ class WaqqastechStack(core.Stack):
             alias_configuration=aws_cloudfront.AliasConfiguration(
                 acm_cert_ref=acm_certificate.certificate_arn,
                 security_policy=aws_cloudfront.SecurityPolicyProtocol.TLS_V1_2_2018,
-                names=CLOUDFRONT_DIST_ALT_DOMAINS
+                names=CLOUDFRONT["alt_domains"]
             ),
             origin_configs=[
                 aws_cloudfront.SourceConfiguration(
@@ -108,11 +119,11 @@ class WaqqastechStack(core.Stack):
             "PrimaryAliasDNSRecord",
             zone=hosted_zone,
             comment="{} CloudFront Dist Alias Record".format(PROJECT_CODE),
-            record_name="{}.".format(DOMAIN_NAME),
+            record_name="{}.".format(HOSTED_ZONE["domain"]),
             target=aws_route53.RecordTarget.from_alias(
                 aws_route53_targets.CloudFrontTarget(
                     cloudfront_distribution
                 )
             ),
-            ttl=core.Duration.seconds(amount=CLOUDFRONT_DEFAULT_TTL),
+            ttl=core.Duration.seconds(amount=CLOUDFRONT["default_ttl"]),
         )
