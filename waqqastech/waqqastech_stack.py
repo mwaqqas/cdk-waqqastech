@@ -114,9 +114,9 @@ class WaqqastechStack(core.Stack):
         )
 
         # CloudFront Route53 Record
-        apex_domain_dns_record = aws_route53.ARecord(
+        primary_dns_record = aws_route53.ARecord(
             self,
-            "PrimaryAliasDNSRecord",
+            "PrimaryDNSRecord",
             zone=hosted_zone,
             comment="{} CloudFront Dist Alias Record".format(PROJECT_CODE),
             record_name="{}.".format(HOSTED_ZONE["domain"]),

@@ -102,7 +102,7 @@ Resources:
           Value: mwaqqas
     Metadata:
       aws:cdk:path: waqqastech/CloudFrontDistribution/CFDistribution
-  PrimaryAliasDNSRecordBEAB17FC:
+  PrimaryDNSRecord052CE852:
     Type: AWS::Route53::RecordSet
     Properties:
       Name: waqqas.tech.
@@ -116,7 +116,7 @@ Resources:
       Comment: waqtec CloudFront Dist Alias Record
       HostedZoneId: Z37WEOKUCYC5ME
     Metadata:
-      aws:cdk:path: waqqastech/PrimaryAliasDNSRecord/Resource
+      aws:cdk:path: waqqastech/PrimaryDNSRecord/Resource
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
