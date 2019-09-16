@@ -190,6 +190,185 @@
       "Metadata": {
         "aws:cdk:path": "waqqastech/PrimaryDNSRecord/Resource"
       }
+    },
+    "ArtifactBucket7410C9EF": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mwaqqas"
+          }
+        ]
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/ArtifactBucket/Resource"
+      }
+    },
+    "CodeBuildProjectRole2B162745": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codebuild.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mwaqqas"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodeBuildProject/Role/Resource"
+      }
+    },
+    "CodeBuildProjectRoleDefaultPolicy66975658": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":logs:us-east-1:147218828400:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "CodeBuildProject4B91CF3F"
+                      }
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":logs:us-east-1:147218828400:log-group:/aws/codebuild/",
+                      {
+                        "Ref": "CodeBuildProject4B91CF3F"
+                      },
+                      ":*"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "CodeBuildProjectRoleDefaultPolicy66975658",
+        "Roles": [
+          {
+            "Ref": "CodeBuildProjectRole2B162745"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodeBuildProject/Role/DefaultPolicy/Resource"
+      }
+    },
+    "CodeBuildProject4B91CF3F": {
+      "Type": "AWS::CodeBuild::Project",
+      "Properties": {
+        "Artifacts": {
+          "Type": "CODEPIPELINE"
+        },
+        "Environment": {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "EnvironmentVariables": [
+            {
+              "Name": "BUCKET_NAME",
+              "Type": "PLAINTEXT",
+              "Value": {
+                "Ref": "WebsiteBucket75C24D94"
+              }
+            }
+          ],
+          "Image": "aws/codebuild/python:3.7.1",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER"
+        },
+        "ServiceRole": {
+          "Fn::GetAtt": [
+            "CodeBuildProjectRole2B162745",
+            "Arn"
+          ]
+        },
+        "Source": {
+          "BuildSpec": "{\n  \"version\": 0.2,\n  \"phases\": {\n    \"install\": {\n      \"commands\": [\n        \"pip install Pygments\",\n        \"wget https://github.com/gohugoio/hugo/releases/download/v0.55.6/hugo_0.55.6_Linux-64bit.deb\",\n        \"dpkg -i hugo_0.55.6_Linux-64bit.deb\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"hugo --config config.toml\"\n      ]\n    },\n    \"post_build\": {\n      \"commands\": [\n        \"aws s3 sync --delete public s3://${BUCKET_NAME}\"\n      ]\n    }\n  }\n}",
+          "Type": "CODEPIPELINE"
+        },
+        "Description": "CodeBuild Project for waqtec Content",
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mwaqqas"
+          }
+        ],
+        "TimeoutInMinutes": 3
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodeBuildProject/Resource"
+      }
     }
   }
 }
