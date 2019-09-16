@@ -168,7 +168,7 @@ class WaqqastechStack(core.Stack):
             environment=codebuild_environment,
             build_spec=codebuild_buildspec,
             description="CodeBuild Project for {} Content".format(constants.PROJECT_CODE),
-            timeout=core.Duration.seconds(amount=180)
+            timeout=core.Duration.seconds(amount=300)
         )
         # TODO: Lock down permissions for Website bucket
         # TODO: Possibly add permissions to get/put objects in artifact bucket

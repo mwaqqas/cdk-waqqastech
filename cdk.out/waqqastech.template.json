@@ -382,7 +382,7 @@
             "Value": "mwaqqas"
           }
         ],
-        "TimeoutInMinutes": 3
+        "TimeoutInMinutes": 5
       },
       "Metadata": {
         "aws:cdk:path": "waqqastech/CodeBuildProject/Resource"
