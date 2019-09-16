@@ -40,3 +40,9 @@ CLOUDFRONT = {
     ],
     "default_ttl": 60,
 }
+
+# Codepipline
+GITHUB_USER_NAME = "mwaqqas"
+GITHUB_REPO_NAME = "hugo-waqqastech"
+BRANCH_NAME = "master"
+GITHUB_OAUTH_TOKEN = "600f17f1de31ea3a47c01390ae7a104f29defb48"

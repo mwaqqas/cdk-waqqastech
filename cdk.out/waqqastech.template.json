@@ -307,20 +307,78 @@
             {
               "Action": "s3:*",
               "Effect": "Allow",
-              "Resource": {
-                "Fn::Join": [
-                  "",
-                  [
-                    {
-                      "Fn::GetAtt": [
-                        "WebsiteBucket75C24D94",
-                        "Arn"
-                      ]
-                    },
-                    "/*"
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WebsiteBucket75C24D94",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
                   ]
-                ]
-              }
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ArtifactBucket7410C9EF",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "WebsiteBucket75C24D94",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "ArtifactBucket7410C9EF",
+                    "Arn"
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ArtifactBucket7410C9EF",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ArtifactBucket7410C9EF",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
             }
           ],
           "Version": "2012-10-17"
@@ -364,7 +422,7 @@
           ]
         },
         "Source": {
-          "BuildSpec": "{\n  \"version\": 0.2,\n  \"phases\": {\n    \"install\": {\n      \"commands\": [\n        \"pip install Pygments\",\n        \"wget https://github.com/gohugoio/hugo/releases/download/v0.55.6/hugo_0.55.6_Linux-64bit.deb\",\n        \"dpkg -i hugo_0.55.6_Linux-64bit.deb\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"hugo --config config.toml\"\n      ]\n    },\n    \"post_build\": {\n      \"commands\": [\n        \"aws s3 sync --delete public s3://${BUCKET_NAME}\"\n      ]\n    }\n  }\n}",
+          "BuildSpec": "{\n  \"version\": 0.2,\n  \"phases\": {\n    \"install\": {\n      \"commands\": [\n        \"pip install Pygments\",\n        \"wget https://github.com/gohugoio/hugo/releases/download/v0.55.6/hugo_0.55.6_Linux-64bit.deb\",\n        \"dpkg -i hugo_0.55.6_Linux-64bit.deb\"\n      ]\n    },\n    \"build\": {\n      \"commands\": [\n        \"hugo --config config.toml\"\n      ]\n    },\n    \"post_build\": {\n      \"commands\": [\n        \"echo $BUCKET_NAME\",\n        \"aws s3 sync --delete public s3://$BUCKET_NAME\"\n      ]\n    }\n  }\n}",
           "Type": "CODEPIPELINE"
         },
         "Description": "CodeBuild Project for waqtec Content",
@@ -386,6 +444,334 @@
       },
       "Metadata": {
         "aws:cdk:path": "waqqastech/CodeBuildProject/Resource"
+      }
+    },
+    "CodePipelineWebsiteContentRole45259898": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "codepipeline.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mwaqqas"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodePipelineWebsiteContent/Role/Resource"
+      }
+    },
+    "CodePipelineWebsiteContentRoleDefaultPolicy3FA01385": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+                "s3:PutObject*",
+                "s3:Abort*"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "ArtifactBucket7410C9EF",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ArtifactBucket7410C9EF",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Action": "s3:*",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "WebsiteBucket75C24D94",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "ArtifactBucket7410C9EF",
+                          "Arn"
+                        ]
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "WebsiteBucket75C24D94",
+                    "Arn"
+                  ]
+                },
+                {
+                  "Fn::GetAtt": [
+                    "ArtifactBucket7410C9EF",
+                    "Arn"
+                  ]
+                }
+              ]
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "CodePipelineWebsiteContentRoleDefaultPolicy3FA01385",
+        "Roles": [
+          {
+            "Ref": "CodePipelineWebsiteContentRole45259898"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodePipelineWebsiteContent/Role/DefaultPolicy/Resource"
+      }
+    },
+    "CodePipelineWebsiteContentB5637858": {
+      "Type": "AWS::CodePipeline::Pipeline",
+      "Properties": {
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "CodePipelineWebsiteContentRole45259898",
+            "Arn"
+          ]
+        },
+        "Stages": [
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Source",
+                  "Owner": "ThirdParty",
+                  "Provider": "GitHub",
+                  "Version": "1"
+                },
+                "Configuration": {
+                  "Owner": "mwaqqas",
+                  "Repo": "hugo-waqqastech",
+                  "Branch": "master",
+                  "OAuthToken": "600f17f1de31ea3a47c01390ae7a104f29defb48",
+                  "PollForSourceChanges": false
+                },
+                "Name": "GithubSource",
+                "OutputArtifacts": [
+                  {
+                    "Name": "source"
+                  }
+                ],
+                "RunOrder": 1
+              }
+            ],
+            "Name": "Source"
+          },
+          {
+            "Actions": [
+              {
+                "ActionTypeId": {
+                  "Category": "Build",
+                  "Owner": "AWS",
+                  "Provider": "CodeBuild",
+                  "Version": "1"
+                },
+                "Configuration": {
+                  "ProjectName": {
+                    "Ref": "CodeBuildProject4B91CF3F"
+                  }
+                },
+                "InputArtifacts": [
+                  {
+                    "Name": "source"
+                  }
+                ],
+                "Name": "HugoBuild",
+                "RoleArn": {
+                  "Fn::GetAtt": [
+                    "CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66",
+                    "Arn"
+                  ]
+                },
+                "RunOrder": 1
+              }
+            ],
+            "Name": "Build"
+          }
+        ],
+        "ArtifactStore": {
+          "Location": {
+            "Ref": "ArtifactBucket7410C9EF"
+          },
+          "Type": "S3"
+        }
+      },
+      "DependsOn": [
+        "CodePipelineWebsiteContentRoleDefaultPolicy3FA01385",
+        "CodePipelineWebsiteContentRole45259898"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodePipelineWebsiteContent/Resource"
+      }
+    },
+    "CodePipelineWebsiteContentSourceGithubSourceWebhookResourceCD8F3D52": {
+      "Type": "AWS::CodePipeline::Webhook",
+      "Properties": {
+        "Authentication": "GITHUB_HMAC",
+        "AuthenticationConfiguration": {
+          "SecretToken": "600f17f1de31ea3a47c01390ae7a104f29defb48"
+        },
+        "Filters": [
+          {
+            "JsonPath": "$.ref",
+            "MatchEquals": "refs/heads/{Branch}"
+          }
+        ],
+        "TargetAction": "GithubSource",
+        "TargetPipeline": {
+          "Ref": "CodePipelineWebsiteContentB5637858"
+        },
+        "TargetPipelineVersion": 1,
+        "RegisterWithThirdParty": true
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodePipelineWebsiteContent/Source/GithubSource/WebhookResource"
+      }
+    },
+    "CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":iam::147218828400:root"
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "Tags": [
+          {
+            "Key": "ProjectCode",
+            "Value": "waqtec"
+          },
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Owner",
+            "Value": "mwaqqas"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodePipelineWebsiteContent/Build/HugoBuild/CodePipelineActionRole/Resource"
+      }
+    },
+    "CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleDefaultPolicy6C8A2312": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "codebuild:BatchGetBuilds",
+                "codebuild:StartBuild",
+                "codebuild:StopBuild"
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "CodeBuildProject4B91CF3F",
+                  "Arn"
+                ]
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleDefaultPolicy6C8A2312",
+        "Roles": [
+          {
+            "Ref": "CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "waqqastech/CodePipelineWebsiteContent/Build/HugoBuild/CodePipelineActionRole/DefaultPolicy/Resource"
       }
     }
   }

@@ -15,7 +15,8 @@ BUILDSPEC = {
         },
         "post_build": {
             "commands": [
-                "aws s3 sync --delete public s3://${BUCKET_NAME}"
+                "echo $BUCKET_NAME",
+                "aws s3 sync --delete public s3://$BUCKET_NAME"
             ]
         }
     }

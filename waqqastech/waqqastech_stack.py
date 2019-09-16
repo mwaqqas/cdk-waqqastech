@@ -2,7 +2,7 @@ from aws_cdk import core
 from aws_cdk import aws_s3, aws_iam, aws_cloudfront
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_certificatemanager
-from aws_cdk import aws_codebuild, aws_codepipeline
+from aws_cdk import aws_codebuild, aws_codepipeline, aws_codepipeline_actions
 import constants
 import buildspec
 
@@ -170,13 +170,68 @@ class WaqqastechStack(core.Stack):
             description="CodeBuild Project for {} Content".format(constants.PROJECT_CODE),
             timeout=core.Duration.seconds(amount=300)
         )
-        # TODO: Lock down permissions for Website bucket
-        # TODO: Possibly add permissions to get/put objects in artifact bucket
+        # TODO: Lock down permissions for buckets
         codebuild_project.add_to_role_policy(
             aws_iam.PolicyStatement(
                 actions=["s3:*"],
                 effect=aws_iam.Effect.ALLOW,
-                resources=[website_bucket.arn_for_objects("*")]
+                resources=[
+                    website_bucket.arn_for_objects("*"),
+                    artifact_bucket.arn_for_objects("*"),
+                    website_bucket.bucket_arn,
+                    artifact_bucket.bucket_arn,
+                ]
             )
         )
         # Codepipeline
+        codepipeline = aws_codepipeline.Pipeline(
+            self,
+            "CodePipelineWebsiteContent",
+            artifact_bucket=artifact_bucket,
+            stages=[
+                aws_codepipeline.StageProps(
+                    stage_name="Source",
+                    actions=[
+                        aws_codepipeline_actions.GitHubSourceAction(
+                            oauth_token=core.SecretValue(
+                                value=constants.GITHUB_OAUTH_TOKEN
+                            ),
+                            output=aws_codepipeline.Artifact(
+                                artifact_name="source"
+                            ),
+                            owner=constants.GITHUB_USER_NAME,
+                            repo=constants.GITHUB_REPO_NAME,
+                            branch=constants.BRANCH_NAME,
+                            action_name="GithubSource",
+                            trigger=aws_codepipeline_actions.GitHubTrigger.WEBHOOK
+                        )
+                    ]
+                ),
+                aws_codepipeline.StageProps(
+                    stage_name="Build",
+                    actions=[
+                        aws_codepipeline_actions.CodeBuildAction(
+                            input=aws_codepipeline.Artifact(
+                                artifact_name="source"
+                            ),
+                            project=codebuild_project,
+                            type=aws_codepipeline_actions.CodeBuildActionType.BUILD,
+                            action_name="HugoBuild"
+                        )
+                    ]
+                )
+            ]
+        )
+        # TODO: Lock down permissions for buckets
+        codepipeline.add_to_role_policy(
+            aws_iam.PolicyStatement(
+                actions=["s3:*"],
+                effect=aws_iam.Effect.ALLOW,
+                resources=[
+                    website_bucket.arn_for_objects("*"),
+                    artifact_bucket.arn_for_objects("*"),
+                    website_bucket.bucket_arn,
+                    artifact_bucket.bucket_arn,
+                ]
+            )
+        )
