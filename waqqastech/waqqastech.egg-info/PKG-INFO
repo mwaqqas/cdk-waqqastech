@@ -1,12 +1,14 @@
 Metadata-Version: 2.1
 Name: waqqastech
 Version: 0.0.1
-Summary: Infrastructure Stack for waqqas.tech
-Home-page: waqqas.tech
-Author: mohamed.waqqas@gmail.com
-License: WTFPL
-Description: Infrastructure Stack for waqqas.tech using the AWS CDK for Python
-Platform: AWS
+Summary: An empty CDK Python app
+Home-page: UNKNOWN
+Author: author
+License: UNKNOWN
+Description: # README
+        ## Waqqas.tech Infrastructure Stack
+        
+Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: Apache Software License

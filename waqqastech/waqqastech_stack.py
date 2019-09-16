@@ -3,13 +3,15 @@ from aws_cdk import aws_s3, aws_iam, aws_cloudfront
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_certificatemanager
 from constants import *
-
+import os
 
 class WaqqastechStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
+        # super().__init__(scope, id, context, outdir)
 
+        print()
         # Common Stack Tags
         for k, v in COMMON_TAGS.items():
             core.Tag.add(self, key=k, value=v)
