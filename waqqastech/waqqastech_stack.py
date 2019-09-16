@@ -2,8 +2,8 @@ from aws_cdk import core
 from aws_cdk import aws_s3, aws_iam, aws_cloudfront
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_certificatemanager
-from constants import *
-import os
+import constants as vars
+
 
 class WaqqastechStack(core.Stack):
 
@@ -13,40 +13,40 @@ class WaqqastechStack(core.Stack):
 
         print()
         # Common Stack Tags
-        for k, v in COMMON_TAGS.items():
+        for k, v in vars.COMMON_TAGS.items():
             core.Tag.add(self, key=k, value=v)
 
         # Hosted Zone
-        if HOSTED_ZONE["id"]:
+        if vars.HOSTED_ZONE["id"]:
             hosted_zone = aws_route53.HostedZone.from_hosted_zone_attributes(
                 self,
                 "ImportedHostedZone",
-                hosted_zone_id=HOSTED_ZONE["id"],
-                zone_name=HOSTED_ZONE["name"]
+                hosted_zone_id=vars.HOSTED_ZONE["id"],
+                zone_name=vars.HOSTED_ZONE["name"]
             )
         else:
             hosted_zone = aws_route53.HostedZone(
                 self,
                 "MainHostedZone",
-                zone_name=HOSTED_ZONE["name"],
-                comment="Hosted Zone for {}".format(HOSTED_ZONE["name"]),
+                zone_name=vars.HOSTED_ZONE["name"],
+                comment="Hosted Zone for {}".format(vars.HOSTED_ZONE["name"]),
             )
 
         # ACM Certificate
-        if CERTIFICATE["arn"]:
+        if vars.CERTIFICATE["arn"]:
             acm_certificate = aws_certificatemanager.Certificate.from_certificate_arn(
                 self,
                 "ImportedCertificate",
-                certificate_arn=CERTIFICATE["arn"]
+                certificate_arn=vars.CERTIFICATE["arn"]
             )
         else:
             acm_certificate = aws_certificatemanager.DnsValidatedCertificate(
                 self,
                 "CloudFrontCertificate",
                 hosted_zone=hosted_zone,
-                region=CERTIFICATE["region"],
-                domain_name=HOSTED_ZONE["domain"],
-                subject_alternative_names=CERTIFICATE["alt_domains"],
+                region=vars.CERTIFICATE["region"],
+                domain_name=vars.HOSTED_ZONE["domain"],
+                subject_alternative_names=vars.CERTIFICATE["alt_domains"],
                 validation_method=aws_certificatemanager.ValidationMethod.DNS
             )
             acm_certificate.node.add_dependency(hosted_zone)
@@ -63,8 +63,12 @@ class WaqqastechStack(core.Stack):
         website_bucket_oai = aws_cloudfront.CfnCloudFrontOriginAccessIdentity(
             self,
             "CloudfrontOAI",
-            cloud_front_origin_access_identity_config=aws_cloudfront.CfnCloudFrontOriginAccessIdentity.CloudFrontOriginAccessIdentityConfigProperty(
-                comment="CloudFrontOAIFor{}".format(PROJECT_CODE.capitalize())
+            cloud_front_origin_access_identity_config=aws_cloudfront
+            .CfnCloudFrontOriginAccessIdentity
+            .CloudFrontOriginAccessIdentityConfigProperty(
+                comment="CloudFrontOAIFor{}".format(
+                    vars.PROJECT_CODE.capitalize()
+                )
             )
         )
 
@@ -89,11 +93,13 @@ class WaqqastechStack(core.Stack):
             "CloudFrontDistribution",
             comment="waqqas.tech",
             default_root_object="index.html",
-            viewer_protocol_policy=aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+            viewer_protocol_policy=aws_cloudfront
+            .ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             alias_configuration=aws_cloudfront.AliasConfiguration(
                 acm_cert_ref=acm_certificate.certificate_arn,
-                security_policy=aws_cloudfront.SecurityPolicyProtocol.TLS_V1_2_2018,
-                names=CLOUDFRONT["alt_domains"]
+                security_policy=aws_cloudfront
+                .SecurityPolicyProtocol.TLS_V1_2_2018,
+                names=vars.CLOUDFRONT["alt_domains"]
             ),
             origin_configs=[
                 aws_cloudfront.SourceConfiguration(
@@ -103,8 +109,10 @@ class WaqqastechStack(core.Stack):
                     ),
                     behaviors=[
                         aws_cloudfront.Behavior(
-                            allowed_methods=aws_cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
-                            cached_methods=aws_cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD,
+                            allowed_methods=aws_cloudfront
+                            .CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+                            cached_methods=aws_cloudfront
+                            .CloudFrontAllowedCachedMethods.GET_HEAD,
                             compress=True,
                             is_default_behavior=True,
                             path_pattern="*",
@@ -120,12 +128,14 @@ class WaqqastechStack(core.Stack):
             self,
             "PrimaryDNSRecord",
             zone=hosted_zone,
-            comment="{} CloudFront Dist Alias Record".format(PROJECT_CODE),
-            record_name="{}.".format(HOSTED_ZONE["domain"]),
+            comment="{} CloudFront Dist Alias Record".format(vars.PROJECT_CODE),
+            record_name="{}.".format(vars.HOSTED_ZONE["domain"]),
             target=aws_route53.RecordTarget.from_alias(
                 aws_route53_targets.CloudFrontTarget(
                     cloudfront_distribution
                 )
             ),
-            ttl=core.Duration.seconds(amount=CLOUDFRONT["default_ttl"]),
+            ttl=core.Duration.seconds(amount=vars.CLOUDFRONT["default_ttl"]),
         )
+
+        # CodeBuild
