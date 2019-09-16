@@ -170,5 +170,13 @@ class WaqqastechStack(core.Stack):
             description="CodeBuild Project for {} Content".format(constants.PROJECT_CODE),
             timeout=core.Duration.seconds(amount=180)
         )
-
+        # TODO: Lock down permissions for Website bucket
+        # TODO: Possibly add permissions to get/put objects in artifact bucket
+        codebuild_project.add_to_role_policy(
+            aws_iam.PolicyStatement(
+                actions=["s3:*"],
+                effect=aws_iam.Effect.ALLOW,
+                resources=[website_bucket.arn_for_objects("*")]
+            )
+        )
         # Codepipeline
