@@ -2,7 +2,7 @@ from aws_cdk import core
 from aws_cdk import aws_s3, aws_iam, aws_cloudfront
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_certificatemanager
-from aws_cdk import aws_codebuild
+from aws_cdk import aws_codebuild, aws_codepipeline
 import constants
 import buildspec
 
