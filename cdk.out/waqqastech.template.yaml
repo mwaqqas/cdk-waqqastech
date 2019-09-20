@@ -1,1 +1,474 @@
 
+Resources:
+  WebsiteBucket75C24D94:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: ProjectCode
+          Value: waqtec
+        - Key: Environment
+          Value: prod
+        - Key: Owner
+          Value: mwaqqas
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: waqqastech/WebsiteBucket/Resource
+  WebsiteBucketPolicyE10E3262:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: WebsiteBucket75C24D94
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal:
+              CanonicalUser:
+                Fn::GetAtt:
+                  - CloudfrontOAI
+                  - S3CanonicalUserId
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - WebsiteBucket75C24D94
+                      - Arn
+                  - /*
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: waqqastech/WebsiteBucket/Policy/Resource
+  CloudfrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: CloudFrontOAIForWaqtec
+    Metadata:
+      aws:cdk:path: waqqastech/CloudfrontOAI
+  CloudFrontDistributionCFDistribution599ADCC4:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - waqqas.tech
+          - blog.waqqas.tech
+        Comment: waqqas.tech
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          DefaultTTL: 60
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+          LambdaFunctionAssociations:
+            - EventType: origin-request
+              LambdaFunctionARN: arn:aws:lambda:us-east-1:147218828400:function:waqtech-urlRewrite-CloudfrontUrlRewrite-1TY45YZL9YD9A:13
+          TargetOriginId: origin1
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Origins:
+          - DomainName:
+              Fn::GetAtt:
+                - WebsiteBucket75C24D94
+                - RegionalDomainName
+            Id: origin1
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                  - ""
+                  - - origin-access-identity/cloudfront/
+                    - Ref: CloudfrontOAI
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          AcmCertificateArn: arn:aws:acm:us-east-1:147218828400:certificate/2e249ec4-2a86-4cc4-a535-ee01f7ba6842
+          MinimumProtocolVersion: TLSv1.2_2018
+          SslSupportMethod: sni-only
+      Tags:
+        - Key: ProjectCode
+          Value: waqtec
+        - Key: Environment
+          Value: prod
+        - Key: Owner
+          Value: mwaqqas
+    Metadata:
+      aws:cdk:path: waqqastech/CloudFrontDistribution/CFDistribution
+  PrimaryDNSRecord052CE852:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: waqqas.tech.
+      Type: A
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+            - CloudFrontDistributionCFDistribution599ADCC4
+            - DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+      Comment: waqtec CloudFront Dist Alias Record
+      HostedZoneId: Z37WEOKUCYC5ME
+    Metadata:
+      aws:cdk:path: waqqastech/PrimaryDNSRecord/Resource
+  ArtifactBucket7410C9EF:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: ProjectCode
+          Value: waqtec
+        - Key: Environment
+          Value: prod
+        - Key: Owner
+          Value: mwaqqas
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: waqqastech/ArtifactBucket/Resource
+  CodeBuildProjectRole2B162745:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+        Version: "2012-10-17"
+      Tags:
+        - Key: ProjectCode
+          Value: waqtec
+        - Key: Environment
+          Value: prod
+        - Key: Owner
+          Value: mwaqqas
+    Metadata:
+      aws:cdk:path: waqqastech/CodeBuildProject/Role/Resource
+  CodeBuildProjectRoleDefaultPolicy66975658:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - :logs:us-east-1:147218828400:log-group:/aws/codebuild/
+                    - Ref: CodeBuildProject4B91CF3F
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - :logs:us-east-1:147218828400:log-group:/aws/codebuild/
+                    - Ref: CodeBuildProject4B91CF3F
+                    - :*
+          - Action: s3:*
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - WebsiteBucket75C24D94
+                        - Arn
+                    - /*
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - ArtifactBucket7410C9EF
+                        - Arn
+                    - /*
+              - Fn::GetAtt:
+                  - WebsiteBucket75C24D94
+                  - Arn
+              - Fn::GetAtt:
+                  - ArtifactBucket7410C9EF
+                  - Arn
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - ArtifactBucket7410C9EF
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - ArtifactBucket7410C9EF
+                        - Arn
+                    - /*
+        Version: "2012-10-17"
+      PolicyName: CodeBuildProjectRoleDefaultPolicy66975658
+      Roles:
+        - Ref: CodeBuildProjectRole2B162745
+    Metadata:
+      aws:cdk:path: waqqastech/CodeBuildProject/Role/DefaultPolicy/Resource
+  CodeBuildProject4B91CF3F:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        EnvironmentVariables:
+          - Name: BUCKET_NAME
+            Type: PLAINTEXT
+            Value:
+              Ref: WebsiteBucket75C24D94
+        Image: aws/codebuild/python:3.7.1
+        PrivilegedMode: false
+        Type: LINUX_CONTAINER
+      ServiceRole:
+        Fn::GetAtt:
+          - CodeBuildProjectRole2B162745
+          - Arn
+      Source:
+        BuildSpec: >-
+          {
+            "version": 0.2,
+            "phases": {
+              "install": {
+                "commands": [
+                  "pip install Pygments",
+                  "wget https://github.com/gohugoio/hugo/releases/download/v0.55.6/hugo_0.55.6_Linux-64bit.deb",
+                  "dpkg -i hugo_0.55.6_Linux-64bit.deb"
+                ]
+              },
+              "build": {
+                "commands": [
+                  "hugo --config config.toml"
+                ]
+              },
+              "post_build": {
+                "commands": [
+                  "echo $BUCKET_NAME",
+                  "aws s3 sync --delete public s3://$BUCKET_NAME"
+                ]
+              }
+            }
+          }
+        Type: CODEPIPELINE
+      Description: CodeBuild Project for waqtec Content
+      Tags:
+        - Key: ProjectCode
+          Value: waqtec
+        - Key: Environment
+          Value: prod
+        - Key: Owner
+          Value: mwaqqas
+      TimeoutInMinutes: 5
+    Metadata:
+      aws:cdk:path: waqqastech/CodeBuildProject/Resource
+  CodePipelineWebsiteContentRole45259898:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+        Version: "2012-10-17"
+      Tags:
+        - Key: ProjectCode
+          Value: waqtec
+        - Key: Environment
+          Value: prod
+        - Key: Owner
+          Value: mwaqqas
+    Metadata:
+      aws:cdk:path: waqqastech/CodePipelineWebsiteContent/Role/Resource
+  CodePipelineWebsiteContentRoleDefaultPolicy3FA01385:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - ArtifactBucket7410C9EF
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - ArtifactBucket7410C9EF
+                        - Arn
+                    - /*
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66
+                - Arn
+          - Action: s3:*
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - WebsiteBucket75C24D94
+                        - Arn
+                    - /*
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - ArtifactBucket7410C9EF
+                        - Arn
+                    - /*
+              - Fn::GetAtt:
+                  - WebsiteBucket75C24D94
+                  - Arn
+              - Fn::GetAtt:
+                  - ArtifactBucket7410C9EF
+                  - Arn
+        Version: "2012-10-17"
+      PolicyName: CodePipelineWebsiteContentRoleDefaultPolicy3FA01385
+      Roles:
+        - Ref: CodePipelineWebsiteContentRole45259898
+    Metadata:
+      aws:cdk:path: waqqastech/CodePipelineWebsiteContent/Role/DefaultPolicy/Resource
+  CodePipelineWebsiteContentB5637858:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      RoleArn:
+        Fn::GetAtt:
+          - CodePipelineWebsiteContentRole45259898
+          - Arn
+      Stages:
+        - Actions:
+            - ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: "1"
+              Configuration:
+                Owner: mwaqqas
+                Repo: hugo-waqqastech
+                Branch: master
+                OAuthToken: 600f17f1de31ea3a47c01390ae7a104f29defb48
+                PollForSourceChanges: false
+              Name: GithubSource
+              OutputArtifacts:
+                - Name: source
+              RunOrder: 1
+          Name: Source
+        - Actions:
+            - ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName:
+                  Ref: CodeBuildProject4B91CF3F
+              InputArtifacts:
+                - Name: source
+              Name: HugoBuild
+              RoleArn:
+                Fn::GetAtt:
+                  - CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66
+                  - Arn
+              RunOrder: 1
+          Name: Build
+      ArtifactStore:
+        Location:
+          Ref: ArtifactBucket7410C9EF
+        Type: S3
+    DependsOn:
+      - CodePipelineWebsiteContentRoleDefaultPolicy3FA01385
+      - CodePipelineWebsiteContentRole45259898
+    Metadata:
+      aws:cdk:path: waqqastech/CodePipelineWebsiteContent/Resource
+  CodePipelineWebsiteContentSourceGithubSourceWebhookResourceCD8F3D52:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: 600f17f1de31ea3a47c01390ae7a104f29defb48
+      Filters:
+        - JsonPath: $.ref
+          MatchEquals: refs/heads/{Branch}
+      TargetAction: GithubSource
+      TargetPipeline:
+        Ref: CodePipelineWebsiteContentB5637858
+      TargetPipelineVersion: 1
+      RegisterWithThirdParty: true
+    Metadata:
+      aws:cdk:path: waqqastech/CodePipelineWebsiteContent/Source/GithubSource/WebhookResource
+  CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - :iam::147218828400:root
+        Version: "2012-10-17"
+      Tags:
+        - Key: ProjectCode
+          Value: waqtec
+        - Key: Environment
+          Value: prod
+        - Key: Owner
+          Value: mwaqqas
+    Metadata:
+      aws:cdk:path: waqqastech/CodePipelineWebsiteContent/Build/HugoBuild/CodePipelineActionRole/Resource
+  CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleDefaultPolicy6C8A2312:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - codebuild:BatchGetBuilds
+              - codebuild:StartBuild
+              - codebuild:StopBuild
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - CodeBuildProject4B91CF3F
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleDefaultPolicy6C8A2312
+      Roles:
+        - Ref: CodePipelineWebsiteContentBuildHugoBuildCodePipelineActionRoleCAB96D66
+    Metadata:
+      aws:cdk:path: waqqastech/CodePipelineWebsiteContent/Build/HugoBuild/CodePipelineActionRole/DefaultPolicy/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=1.8.0,@aws-cdk/assets=1.8.0,@aws-cdk/aws-apigateway=1.8.0,@aws-cdk/aws-applicationautoscaling=1.8.0,@aws-cdk/aws-autoscaling=1.8.0,@aws-cdk/aws-autoscaling-common=1.8.0,@aws-cdk/aws-autoscaling-hooktargets=1.8.0,@aws-cdk/aws-certificatemanager=1.8.0,@aws-cdk/aws-cloudformation=1.8.0,@aws-cdk/aws-cloudfront=1.8.0,@aws-cdk/aws-cloudwatch=1.8.0,@aws-cdk/aws-codebuild=1.8.0,@aws-cdk/aws-codecommit=1.8.0,@aws-cdk/aws-codedeploy=1.8.0,@aws-cdk/aws-codepipeline=1.8.0,@aws-cdk/aws-codepipeline-actions=1.8.0,@aws-cdk/aws-ec2=1.8.0,@aws-cdk/aws-ecr=1.8.0,@aws-cdk/aws-ecr-assets=1.8.0,@aws-cdk/aws-ecs=1.8.0,@aws-cdk/aws-elasticloadbalancing=1.8.0,@aws-cdk/aws-elasticloadbalancingv2=1.8.0,@aws-cdk/aws-events=1.8.0,@aws-cdk/aws-events-targets=1.8.0,@aws-cdk/aws-iam=1.8.0,@aws-cdk/aws-kms=1.8.0,@aws-cdk/aws-lambda=1.8.0,@aws-cdk/aws-logs=1.8.0,@aws-cdk/aws-route53=1.8.0,@aws-cdk/aws-route53-targets=1.8.0,@aws-cdk/aws-s3=1.8.0,@aws-cdk/aws-s3-assets=1.8.0,@aws-cdk/aws-secretsmanager=1.8.0,@aws-cdk/aws-servicediscovery=1.8.0,@aws-cdk/aws-sns=1.8.0,@aws-cdk/aws-sns-subscriptions=1.8.0,@aws-cdk/aws-sqs=1.8.0,@aws-cdk/aws-ssm=1.8.0,@aws-cdk/aws-stepfunctions=1.8.0,@aws-cdk/core=1.8.0,@aws-cdk/custom-resources=1.8.0,@aws-cdk/cx-api=1.8.0,@aws-cdk/region-info=1.8.0,jsii-runtime=Python/3.7.4
+

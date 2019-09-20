@@ -3,6 +3,7 @@ from aws_cdk import aws_s3, aws_iam, aws_cloudfront
 from aws_cdk import aws_route53, aws_route53_targets
 from aws_cdk import aws_certificatemanager
 from aws_cdk import aws_codebuild, aws_codepipeline, aws_codepipeline_actions
+from aws_cdk import aws_lambda
 import constants
 import buildspec
 
@@ -89,6 +90,19 @@ class WaqqastechStack(core.Stack):
             )
         )
 
+        # Adopt Lambda Function
+        lambda_function = aws_lambda.Function.from_function_arn(
+            self,
+            "UrlRewriteFunction",
+            function_arn=constants.URL_REWRITE_FUNCTION_ARN
+        )
+
+        lambda_function_version_arn = aws_lambda.Version.from_version_arn(
+            self,
+            "LambdaFunctionArn",
+            version_arn=constants.URL_REWRITE_FUNCTION_VERSION_ARN
+        )
+
         # CloudFront Web Distribution
         cloudfront_distribution = aws_cloudfront.CloudFrontWebDistribution(
             self,
@@ -119,6 +133,12 @@ class WaqqastechStack(core.Stack):
                             is_default_behavior=True,
                             path_pattern="*",
                             default_ttl=core.Duration.seconds(amount=60),
+                            lambda_function_associations=[
+                                aws_cloudfront.LambdaFunctionAssociation(
+                                    event_type=aws_cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
+                                    lambda_function=lambda_function_version_arn
+                                )
+                            ]
                         )
                     ]
                 )

@@ -9,3 +9,4 @@ aws-cdk.aws_certificatemanager
 aws-cdk.aws_codebuild
 aws-cdk.aws_codepipeline
 aws-cdk.aws_codepipeline_actions
+aws-cdk.aws_lambda
