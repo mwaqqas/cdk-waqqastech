@@ -132,7 +132,7 @@ class WaqqastechStack(core.Stack):
                             compress=True,
                             is_default_behavior=True,
                             path_pattern="*",
-                            default_ttl=core.Duration.seconds(amount=60),
+                            default_ttl=core.Duration.seconds(amount=constants.CLOUDFRONT['default_ttl']),
                             lambda_function_associations=[
                                 aws_cloudfront.LambdaFunctionAssociation(
                                     event_type=aws_cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
