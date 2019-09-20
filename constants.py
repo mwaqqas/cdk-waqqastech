@@ -38,7 +38,7 @@ CLOUDFRONT = {
         "waqqas.tech",
         "blog.waqqas.tech"
     ],
-    "default_ttl": 60,
+    "default_ttl": 3600,
 }
 
 # Codepipline
@@ -46,3 +46,9 @@ GITHUB_USER_NAME = "mwaqqas"
 GITHUB_REPO_NAME = "hugo-waqqastech"
 BRANCH_NAME = "master"
 GITHUB_OAUTH_TOKEN = "600f17f1de31ea3a47c01390ae7a104f29defb48"
+
+# Lambda
+URL_REWRITE_FUNCTION_ARN = \
+    "arn:aws:lambda:us-east-1:147218828400:function:waqtech-urlRewrite-CloudfrontUrlRewrite-1TY45YZL9YD9A"
+URL_REWRITE_FUNCTION_VERSION_ARN = \
+    "arn:aws:lambda:us-east-1:147218828400:function:waqtech-urlRewrite-CloudfrontUrlRewrite-1TY45YZL9YD9A:13"
